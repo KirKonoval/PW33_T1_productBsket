@@ -15,7 +15,7 @@ int main() {
     std::map<std::string, int > productBase;
     int count=0;
 
-    while (count<4){
+    while (count<3){
         dataInput(productBase);
         count++;
     }
@@ -30,13 +30,13 @@ void dataInput(std::map<std::string, int>& base ){
     int num ;
 
     do{
-        std::cout << "Please enter the "<< base.size()+1<<" article in the base: \n";
+        std::cout << "Please enter the "<< base.size()+1<<" article in the base: ";
         std::cin >> article;
 
     } while (!inputArticleControl(article));
 
     do {
-        std::cout << " Please enter the num of "<<article;
+        std::cout << " Please enter the num of  "<<article<<": ";
         std::cin >> num;
     } while (!inputNumCtrl(num));
 
@@ -59,7 +59,7 @@ bool inputArticleControl( const std::string& inputArticle){
 bool inputNumCtrl(const int& inputNum){
 
     if (std::cin.good()){
-        if (inputNum <0 || inputNum >100000 ){
+        if (inputNum <=0 || inputNum >100000 ){
             std::cout << "Input num error, repeat\n";
             return false;
         }
@@ -75,6 +75,6 @@ bool inputNumCtrl(const int& inputNum){
 
 void baseVisu(std::map<std::string, int>& base){
     for (auto it: base){
-        std::cout <<it.first<<" "<<it.second;
+        std::cout <<it.first<<" "<<it.second<<"\n";
     }
 }

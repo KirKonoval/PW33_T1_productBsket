@@ -13,36 +13,47 @@ void baseVisu(std::map<std::string, int>&);
 bool articleValidation(std::map<std::string, int>&, std::string&);
 bool numValidation(std::map<std::string, int>&, std::string&, int&);
 int  commandCtrl(std::string&);
+void reducingNumInBase(std::map<std::string, int>&, std::string&, int&);
+void inputArticleAtList(std::map<std::string, int>&, std::string&);
+void inNumAtliststd (std::map<std::string, int>&, std::string&, int&);
+
+
 
 class Basket{
     std::map <std::string,int> productInBasket;
 
 public:
-    void add (std::map <std::string,int> productInMarket){
+    void add (std::map <std::string,int>& productInMarket){
         std::string inArticle;
         int inNum;
         bool inArticleCorrect=false;
 
-        std::cout << "Please select product at list, input article \n";
-        baseVisu(productInMarket);
-
-        std::cin >>inArticle;
-
-        if (!articleValidation(productInMarket,inArticle)){
-            throw std::invalid_argument("Input error, invalid article!");
-        }
+        inputArticleAtList(productInMarket,inArticle);
         inArticleCorrect= true;
 
         if(inArticleCorrect){
-            std::cout << "How many pieces "<<inArticle<< " do you want to put in the basket? \n";
-            std::cout << "Input num:  ";
-            std::cin >> inNum;
-
-            if (!numValidation(productInMarket,inArticle,inNum)){
-                throw std::invalid_argument("Input error,you have specified more than is available!\n ");
-            }
+            inNumAtliststd(productInMarket,inArticle,inNum);
         }
 
+        productInBasket.insert(std::make_pair(inArticle,inNum));
+        reducingNumInBase(productInMarket,inArticle,inNum);
+    }
+    void remove (){
+        std::string prodArticleBasket;
+        int numProductInBasket;
+        bool articleCorrect;
+
+        if (!productInBasket.empty()){
+            inputArticleAtList(productInBasket,prodArticleBasket);
+        }
+    }
+
+    void productInBasketVisu(){
+        std::cout << "Now in basket: \n";
+        for (auto it:productInBasket){
+            std::cout << it.first << " " << it.second<<'\n';
+        }
+        std::cout << "\n";
     }
 
 
@@ -72,6 +83,7 @@ int main() {
             do{
                 try {
                     actBasket->add(productBase);
+                    actBasket->productInBasketVisu();
                     addStatus= true;
 
                 }
@@ -87,9 +99,6 @@ int main() {
         }
     }
 
-
-
-
 }
 
 
@@ -100,9 +109,7 @@ void dataInput(std::map<std::string, int>& base ){
 
     do{
         std::cout << "Please enter the "<< base.size()+1<<" article in the base.\n";
-
-        std::cin >> article;
-
+        std::getline(std::cin, article);
     } while (!inputArticleControl(article,base));
 
     do {
@@ -125,6 +132,13 @@ bool inputArticleControl( const std::string& inputArticle, std::map<std::string,
         }
     }
 
+    if (inputArticle.find(' ')!=std::string::npos){
+        std::cout << "Incorrect input, repeat!\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return false;
+    }
+
     for (auto it: base){
         if (it.first==inputArticle){
             std::cout << "This article is already in the database!\n";
@@ -141,6 +155,8 @@ bool inputNumCtrl(const int& inputNum){
             std::cout << "Input num error, repeat\n";
             return false;
         }
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return true;
     }
     else{
@@ -149,6 +165,7 @@ bool inputNumCtrl(const int& inputNum){
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return false;
     }
+
 }
 
 void baseVisu(std::map<std::string, int>& base){
@@ -175,7 +192,6 @@ bool numValidation(std::map<std::string , int>& base , std::string& actArticle, 
             if (inNum > it.second) {
                 return false;
             }
-
         }
 
     return true;
@@ -194,8 +210,6 @@ bool inputEnd(std::map<std::string, int>& base){
 
 
 int commandCtrl(std::string& actCommand){
-
-
     if (actCommand=="add"){
         return 1;
     }
@@ -207,5 +221,34 @@ int commandCtrl(std::string& actCommand){
     }
     else{
         return 0;
+    }
+}
+
+void reducingNumInBase(std::map<std::string, int>& base, std::string& article, int& num ){
+
+      auto it=base.find(article);
+      it->second-=num;
+      if (it->second<0){
+          it->second=0;
+      }
+}
+
+void inputArticleAtList(std::map<std::string, int>& base , std::string& article){
+    std::cout << "Please select product at list, input article \n";
+    baseVisu(base);
+    std::cin >>article;
+
+    if (!articleValidation(base,article)){
+        throw std::invalid_argument("Input error, invalid article!");
+    }
+}
+
+void inNumAtliststd (std::map<std::string, int>& base, std::string& article, int& num){
+    std::cout << "How many pieces "<<article<< " ? \n";
+    std::cout << "Input num:  ";
+    std::cin >> num;
+
+    if (!numValidation(base,article,num)){
+        throw std::invalid_argument("Input error,you have specified more than is available!\n ");
     }
 }

@@ -9,12 +9,12 @@ void dataInput(std::map<std::string, int>&);
 bool inputEnd(std::map<std::string, int>&);
 bool inputArticleControl( const std::string&, std::map<std::string, int>&);
 bool inputNumCtrl(const int&);
-void baseVisu(std::map<std::string, int>&);
+void baseVisu(std::map<std::string, int>&, std::string&);
 bool articleValidation(std::map<std::string, int>&, std::string&);
 bool numValidation(std::map<std::string, int>&, std::string&, int&);
 int  commandCtrl(std::string&);
 void reducingNumInBase(std::map<std::string, int>&, std::string&, int&);
-void inputArticleAtList(std::map<std::string, int>&, std::string&);
+void inputArticleAtList(std::map<std::string, int>&, std::string&,std::string&);
 void inNumAtliststd (std::map<std::string, int>&, std::string&, int&);
 
 
@@ -23,28 +23,39 @@ class Basket{
     std::map <std::string,int> productInBasket;
 
 public:
-    void add (std::map <std::string,int>& productInMarket){
+    void add (std::map <std::string,int>& productInMarket, std::string& command){
         std::string inArticle;
         int inNum;
         bool inArticleCorrect=false;
+        bool inArticleInBasket=false;
 
-        inputArticleAtList(productInMarket,inArticle);
+        inputArticleAtList(productInMarket,inArticle,command);
         inArticleCorrect= true;
 
         if(inArticleCorrect){
             inNumAtliststd(productInMarket,inArticle,inNum);
+            inArticleInBasket=presenceArticleInBasket(inArticle);
+            addingToBasket(inArticleInBasket,inArticle,inNum);
         }
 
-        productInBasket.insert(std::make_pair(inArticle,inNum));
         reducingNumInBase(productInMarket,inArticle,inNum);
     }
-    void remove (){
+    void remove (std::string& command){
         std::string prodArticleBasket;
         int numProductInBasket;
         bool articleCorrect;
 
         if (!productInBasket.empty()){
-            inputArticleAtList(productInBasket,prodArticleBasket);
+            inputArticleAtList(productInBasket,prodArticleBasket,command);
+            articleCorrect= true;
+
+            if(articleCorrect){
+                inNumAtliststd(productInBasket,prodArticleBasket,numProductInBasket);
+                reducingNumInBase(productInBasket,prodArticleBasket,numProductInBasket);
+            }
+        }
+        else{
+            std::cout << "Product basket is empty!\n";
         }
     }
 
@@ -56,14 +67,39 @@ public:
         std::cout << "\n";
     }
 
+    bool presenceArticleInBasket(std::string & article){
+
+        auto it =productInBasket.find(article);
+
+        if(it->first ==article){
+            std::cout << it->first<<" already in the basket\n";
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    void addingToBasket(bool& articleInBasket, std::string& article, int& num){
+        if (articleInBasket){
+            auto it = productInBasket.find(article);
+                it->second+=num;
+        }
+        else{
+            productInBasket.insert(std::make_pair(article,num));
+        }
+    }
+
+
+
 
 };
 
 int main() {
 
     std::map<std::string, int > productBase;
-
     bool addStatus= false;
+    bool removeStatus=false;
     std::string command;
 
     while (inputEnd(productBase)){
@@ -78,25 +114,37 @@ int main() {
         std::cout << "To remove an item from the basket, enter remove\n";
         std::cout << "To exit enter end\n";
         std::cin >>command;
-
-        if (commandCtrl(command)==1){
+        if (commandCtrl(command)==0){
+            std::cout << "Incorrect command, repeat!\n";
+        }
+        else if (commandCtrl(command)==1){
             do{
                 try {
-                    actBasket->add(productBase);
+                    actBasket->add(productBase,command);
                     actBasket->productInBasketVisu();
                     addStatus= true;
 
                 }
                 catch(const std::exception& x) {
-
                     std::cerr << "Caught exception: "<<x.what()<<"\n";
                 }
 
             } while (!addStatus);
         }
-        if (commandCtrl(command)==0){
-            std::cout << "Incorrect command, repeat!\n";
+        else if(commandCtrl(command)==2){
+            do {
+                try{
+                    actBasket->remove(command);
+                    actBasket->productInBasketVisu();
+                    removeStatus= true;
+                }
+                catch (const std::exception& y){
+                    std::cerr << "Caught exception: "<<y.what()<<"\n";
+                }
+            } while (!removeStatus);
         }
+
+
     }
 
 }
@@ -168,9 +216,15 @@ bool inputNumCtrl(const int& inputNum){
 
 }
 
-void baseVisu(std::map<std::string, int>& base){
+void baseVisu(std::map<std::string, int>& base, std::string& command){
 
-    std::cout << " Now in market: \n";
+    if (command=="add"){
+        std::cout << " Now in market: \n";
+    }
+    else {
+        std::cout << " Now in basket: \n";
+    }
+
     for (auto it: base){
         std::cout <<  it.first<<" "<<it.second<<"\n";
 
@@ -233,9 +287,9 @@ void reducingNumInBase(std::map<std::string, int>& base, std::string& article, i
       }
 }
 
-void inputArticleAtList(std::map<std::string, int>& base , std::string& article){
+void inputArticleAtList(std::map<std::string, int>& base , std::string& article, std::string& command){
     std::cout << "Please select product at list, input article \n";
-    baseVisu(base);
+    baseVisu(base,command);
     std::cin >>article;
 
     if (!articleValidation(base,article)){
@@ -251,4 +305,6 @@ void inNumAtliststd (std::map<std::string, int>& base, std::string& article, int
     if (!numValidation(base,article,num)){
         throw std::invalid_argument("Input error,you have specified more than is available!\n ");
     }
+
+
 }
